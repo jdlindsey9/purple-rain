@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Purple Rain (8 minutes)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <h1>Purple Rain</h1>
+      <p class="sub">Purple rain animation for 8:00 minutes</p>
+    </header>
+
+    <section class="panel">
+      <div class="controls">
+        <button id="startBtn">Start (8:00)</button>
+        <button id="stopBtn" disabled>Stop</button>
+
+        <div class="timer">
+          <span id="timeLeft">8:00</span>
+          <span class="hint">(auto-stops at 0:00)</span>
+        </div>
+      </div>
+
+      <div class="audioBox">
+        <p class="audioTitle">Audio (optional)</p>
+        <p class="audioHint">
+          If you own rights to an MP3, place it at <code>audio/track.mp3</code>.
+          Browsers require a user click to start audio.
+        </p>
+        <audio id="audio" controls preload="auto">
+          <source src="audio/track.mp3" type="audio/mpeg" />
+          Your browser does not support the audio element.
+        </audio>
+
+        <p class="legal">
+          Note: Don’t upload copyrighted tracks you don’t have rights to.
+          For Prince’s “Purple Rain,” use a legal streaming embed/link instead.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <canvas id="rain"></canvas>
+  <script src="script.js"></script>
+</body>
+</html>

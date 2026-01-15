@@ -1,0 +1,120 @@
+:root {
+  --bg: #070510;
+  --panel: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.12);
+  --text: rgba(255,255,255,0.92);
+  --muted: rgba(255,255,255,0.70);
+  --accent: #b84cff;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: radial-gradient(1200px 800px at 20% 10%, rgba(184,76,255,0.20), transparent 60%),
+              radial-gradient(900px 700px at 90% 30%, rgba(120,0,255,0.12), transparent 55%),
+              var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+#rain {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+}
+
+.wrap {
+  position: relative;
+  z-index: 2;
+  padding: 24px;
+  max-width: 900px;
+}
+
+.top h1 {
+  margin: 0 0 6px 0;
+  font-size: 42px;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 22px rgba(184,76,255,0.45);
+}
+.sub {
+  margin: 0 0 18px 0;
+  color: var(--muted);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 18px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+button {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 120ms ease, background 120ms ease;
+}
+button:hover { transform: translateY(-1px); background: rgba(255,255,255,0.12); }
+button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+#startBtn {
+  border-color: rgba(184,76,255,0.40);
+  box-shadow: 0 0 0 3px rgba(184,76,255,0.10);
+}
+
+.timer {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
+}
+#timeLeft {
+  font-size: 26px;
+  font-weight: 800;
+  color: #e9d1ff;
+  text-shadow: 0 0 18px rgba(184,76,255,0.35);
+}
+.hint { color: var(--muted); font-size: 13px; }
+
+.audioBox {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.audioTitle { margin: 0; font-weight: 700; }
+.audioHint { margin: 8px 0 10px 0; color: var(--muted); }
+
+audio {
+  width: 100%;
+  border-radius: 12px;
+}
+
+.legal {
+  margin: 10px 0 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+code {
+  color: #f1dbff;
+}
