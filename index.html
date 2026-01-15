@@ -15,14 +15,13 @@
   --text:#f6ebff;
 }
 
-* { box-sizing: border-box; }
+* { box-sizing:border-box; }
 
 body {
   margin:0;
-  min-height:100vh;
-  background: radial-gradient(circle at top, #3d0066, var(--bg2));
+  background:radial-gradient(circle at top,#3d0066,var(--bg2));
   color:var(--text);
-  font-family:Montserrat, sans-serif;
+  font-family:Montserrat,sans-serif;
   overflow:hidden;
 }
 
@@ -45,29 +44,70 @@ main {
 }
 
 h1 {
-  font-family:"Playfair Display", serif;
-  letter-spacing:0.15em;
-  margin-bottom:2rem;
+  font-family:"Playfair Display",serif;
+  letter-spacing:0.2em;
+  margin-bottom:1rem;
   text-shadow:0 0 25px var(--glow);
 }
 
 #lyrics {
-  font-size:1.4rem;
-  max-width:700px;
+  font-size:1.25rem;
+  max-width:720px;
   min-height:4em;
   line-height:1.6;
   opacity:0;
   transition:opacity 0.6s ease;
 }
 
-#lyrics.active {
-  opacity:1;
+#lyrics.active { opacity:1; }
+
+.controls {
+  margin-top:1.8rem;
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  width:100%;
+  max-width:720px;
+}
+
+button {
+  background:none;
+  border:none;
+  color:var(--text);
+  font-size:1.7rem;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+button:hover { color:var(--glow); }
+
+.progress-container {
+  flex:1;
+  background:rgba(255,255,255,0.25);
+  height:8px;
+  border-radius:4px;
+  cursor:pointer;
+  position:relative;
+}
+
+.progress {
+  height:100%;
+  width:0%;
+  border-radius:4px;
+  background:linear-gradient(90deg,#7f2fff,var(--glow));
+  box-shadow:0 0 12px var(--glow);
+}
+
+.time {
+  font-size:0.9rem;
+  white-space:nowrap;
+  opacity:0.85;
 }
 
 #overlay {
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.75);
+  background:rgba(0,0,0,0.8);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -75,19 +115,14 @@ h1 {
 }
 
 #overlay button {
-  background:none;
   border:2px solid var(--glow);
-  color:var(--text);
-  padding:1rem 2rem;
+  padding:1rem 2.5rem;
   font-size:1.1rem;
-  cursor:pointer;
   letter-spacing:0.15em;
-  box-shadow:0 0 25px rgba(178,102,255,0.6);
+  box-shadow:0 0 30px rgba(178,102,255,0.7);
 }
 
-iframe {
-  display:none; /* audio only */
-}
+iframe { display:none; }
 </style>
 </head>
 <body>
@@ -95,12 +130,22 @@ iframe {
 <canvas id="rain"></canvas>
 
 <div id="overlay">
-  <button id="unmute">ENTER THE PURPLE RAIN</button>
+  <button id="startBtn">ENTER THE PURPLE RAIN</button>
 </div>
 
 <main>
   <h1>PURPLE RAIN</h1>
   <div id="lyrics"></div>
+
+  <div class="controls">
+    <button id="playPause">▶</button>
+
+    <div class="progress-container" id="progressContainer">
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <div class="time" id="time">0:00 / 0:00</div>
+  </div>
 </main>
 
 <div id="player"></div>
@@ -109,96 +154,152 @@ iframe {
 
 <script>
 /* ================= YOUTUBE AUDIO ================= */
-
-const VIDEO_ID = "TvnYmWpD_T8";
+const VIDEO_ID = "iSBVeZrDfGY";
 let player;
 
 function onYouTubeIframeAPIReady() {
   player = new YT.Player("player", {
     videoId: VIDEO_ID,
     playerVars: {
-      autoplay: 1,
-      controls: 0,
-      modestbranding: 1,
-      rel: 0,
-      playsinline: 1,
-      mute: 1
+      autoplay:1,
+      controls:0,
+      rel:0,
+      modestbranding:1,
+      mute:1,
+      playsinline:1
     },
-    events: {
-      onReady: () => {
-        player.playVideo();
-        startLyricSync();
-      }
-    }
+    events:{ onReady:init }
   });
 }
 
-document.getElementById("unmute").onclick = () => {
+document.getElementById("startBtn").onclick = () => {
   player.unMute();
-  document.getElementById("overlay").style.display = "none";
+  document.getElementById("overlay").style.display="none";
 };
 
-/* ================= LYRICS SYNC ================= */
-/*
-  ⚠️ COPYRIGHT NOTICE
-  Paste the lyrics you legally own below.
-  Format:
-  { time: seconds, text: "lyric line" }
-*/
+/* ================= CONTROLS ================= */
+const playPause = document.getElementById("playPause");
+const progressContainer = document.getElementById("progressContainer");
+const progress = document.getElementById("progress");
+const timeDisplay = document.getElementById("time");
 
+function init() {
+  playPause.onclick = () => {
+    if(player.getPlayerState() === YT.PlayerState.PLAYING) {
+      player.pauseVideo();
+    } else {
+      player.playVideo();
+    }
+  };
+
+  progressContainer.onclick = e => {
+    const r = progressContainer.getBoundingClientRect();
+    const pct = (e.clientX - r.left) / r.width;
+    player.seekTo(player.getDuration() * pct, true);
+  };
+
+  setInterval(updateUI, 300);
+}
+
+function updateUI() {
+  if(!player.getDuration) return;
+
+  const cur = player.getCurrentTime();
+  const dur = player.getDuration();
+
+  progress.style.width = (cur / dur * 100) + "%";
+  timeDisplay.textContent = format(cur) + " / " + format(dur);
+
+  playPause.textContent =
+    player.getPlayerState() === YT.PlayerState.PLAYING ? "❚❚" : "▶";
+}
+
+function format(t) {
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60).toString().padStart(2,"0");
+  return `${m}:${s}`;
+}
+
+/* ================= LYRICS ================= */
 const lyrics = [
-  // EXAMPLE ONLY — REPLACE WITH REAL LYRICS
-  { time: 0, text: "…" },
-  { time: 15, text: "…" },
-  { time: 30, text: "…" }
+  { time: 48, text: "I never meant to cause you any sorrow" },
+  { time: 55, text: "I never meant to cause you any pain" },
+  { time: 62, text: "I only wanted, one time, to see you laughing" },
+  { time: 71, text: "I only want to see you laughing" },
+  { time: 78, text: "In the purple rain" },
+
+  { time: 92, text: "Purple rain, purple rain" },
+  { time: 100, text: "Purple rain, purple rain" },
+  { time: 108, text: "Purple rain, purple rain" },
+  { time: 116, text: "I only want to see you bathing" },
+  { time: 123, text: "In the purple rain" },
+
+  { time: 155, text: "I never wanted to be your weekend lover" },
+  { time: 163, text: "I only wanted to be some kind of friend, hey" },
+  { time: 173, text: "Baby, I could never steal you from another" },
+  { time: 182, text: "It's such a shame our friendship had to end" },
+
+  { time: 202, text: "Purple rain, purple rain" },
+  { time: 210, text: "Purple rain, purple rain" },
+  { time: 218, text: "Purple rain, purple rain" },
+  { time: 226, text: "I only want to see you underneath the purple rain" },
+
+  { time: 260, text: "Honey, I know, I know, I know times are changing" },
+  { time: 269, text: "It's time we all reach out for something new" },
+  { time: 277, text: "That means you, too" },
+  { time: 284, text: "You say you want a leader" },
+  { time: 291, text: "But you can't seem to make up your mind" },
+  { time: 299, text: "I think you better close it" },
+  { time: 305, text: "And let me guide you to the purple rain" },
+
+  { time: 328, text: "Purple rain, purple rain, yeah" },
+  { time: 336, text: "Purple rain, purple rain, woo!" },
+  { time: 345, text: "I only want to see you" },
+  { time: 352, text: "Only want to see you in the purple rain" }
 ];
 
 const lyricBox = document.getElementById("lyrics");
-let currentLine = -1;
+let lastLine = -1;
 
-function startLyricSync() {
-  setInterval(() => {
-    if (!player || !player.getCurrentTime) return;
-    const t = player.getCurrentTime();
+setInterval(() => {
+  if(!player || !player.getCurrentTime) return;
+  const t = player.getCurrentTime();
 
-    for (let i = lyrics.length - 1; i >= 0; i--) {
-      if (t >= lyrics[i].time && currentLine !== i) {
-        currentLine = i;
-        lyricBox.classList.remove("active");
-        setTimeout(() => {
-          lyricBox.textContent = lyrics[i].text;
-          lyricBox.classList.add("active");
-        }, 300);
-        break;
-      }
+  for(let i = lyrics.length - 1; i >= 0; i--) {
+    if(t >= lyrics[i].time && lastLine !== i) {
+      lastLine = i;
+      lyricBox.classList.remove("active");
+      setTimeout(() => {
+        lyricBox.textContent = lyrics[i].text;
+        lyricBox.classList.add("active");
+      }, 200);
+      break;
     }
-  }, 300);
-}
+  }
+}, 300);
 
-/* ================= PURPLE RAIN EFFECT ================= */
-
+/* ================= PURPLE RAIN VISUAL ================= */
 const canvas = document.getElementById("rain");
 const ctx = canvas.getContext("2d");
-let drops = [];
+let drops=[];
 
-function resize() {
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-  drops = Array.from({ length: canvas.width / 18 }, () => ({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    l: Math.random() * 20 + 10,
-    s: Math.random() * 4 + 2
+function resize(){
+  canvas.width=innerWidth;
+  canvas.height=innerHeight;
+  drops = Array.from({length:canvas.width/18},()=>({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height,
+    l:Math.random()*20+10,
+    s:Math.random()*4+2
   }));
 }
-window.addEventListener("resize", resize);
+window.addEventListener("resize",resize);
 resize();
 
-function rain() {
+function rain(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.strokeStyle="rgba(178,102,255,0.35)";
   ctx.lineWidth=1;
-
   drops.forEach(d=>{
     ctx.beginPath();
     ctx.moveTo(d.x,d.y);
