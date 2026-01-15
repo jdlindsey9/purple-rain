@@ -1,68 +1,284 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Purple Rain (8 minutes)</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <title>Purple Rain</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Montserrat:wght@300;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --purple-dark: #2a003d;
+      --purple-main: #6a0dad;
+      --purple-glow: #b266ff;
+      --purple-soft: rgba(178,102,255,0.15);
+      --text-main: #f5e9ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Montserrat', sans-serif;
+      background: radial-gradient(circle at top, #3b005f, var(--purple-dark));
+      color: var(--text-main);
+      overflow-x: hidden;
+    }
+
+    /* Rain canvas */
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: auto;
+      padding: 4rem 1.5rem 3rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 20px var(--purple-glow);
+    }
+
+    .subtitle {
+      opacity: 0.8;
+      margin-bottom: 3rem;
+      font-size: 1rem;
+      letter-spacing: 0.15em;
+    }
+
+    /* Player frame */
+    .player-shell {
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.4));
+      border-radius: 20px;
+      box-shadow:
+        0 0 40px rgba(178,102,255,0.25),
+        inset 0 0 30px rgba(255,255,255,0.05);
+      padding: 1.2rem;
+      backdrop-filter: blur(10px);
+    }
+
+    #player {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    /* Controls */
+    .controls {
+      margin-top: 1.2rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    button {
+      background: none;
+      border: none;
+      color: var(--text-main);
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: transform 0.2s, color 0.2s;
+    }
+
+    button:hover {
+      color: var(--purple-glow);
+      transform: scale(1.1);
+    }
+
+    .progress {
+      position: relative;
+      height: 6px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .progress-filled {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--purple-main), var(--purple-glow));
+      border-radius: 4px;
+      box-shadow: 0 0 10px var(--purple-glow);
+    }
+
+    .time {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      white-space: nowrap;
+    }
+
+    footer {
+      margin-top: 3rem;
+      font-size: 0.75rem;
+      opacity: 0.6;
+      letter-spacing: 0.1em;
+    }
+  </style>
 </head>
 <body>
-  <main class="wrap">
-    <header class="top">
-      <h1>Purple Rain</h1>
-      <p class="sub">Purple rain animation for 8:00 minutes</p>
-    </header>
 
-    <section class="panel">
-      <div class="controls">
-        <button id="startBtn">Start (8:00)</button>
-        <button id="stopBtn" disabled>Stop</button>
+<canvas id="rain"></canvas>
 
-        <div class="timer">
-          <span id="timeLeft">8:00</span>
-          <span class="hint">(auto-stops at 0:00)</span>
-        </div>
+<div class="container">
+  <h1>PURPLE RAIN</h1>
+  <div class="subtitle">Only want to see you laughing in the purple rain</div>
+
+  <div class="player-shell">
+    <div id="player"></div>
+
+    <div class="controls">
+      <button id="playPause">▶</button>
+
+      <div class="progress" id="progress">
+        <div class="progress-filled" id="progressFilled"></div>
       </div>
 
-      <div class="audioBox">
-        <p class="audioTitle">Audio (optional)</p>
-        <p class="audioHint">
-          If you own rights to an MP3, place it at <code>audio/track.mp3</code>.
-          Browsers require a user click to start audio.
-        </p>
-        <div class="audioBox">
-  <p class="audioTitle">Purple Rain – Prince</p>
-  <p class="audioHint">
-    Click play below to start the official track.
-  </p>
+      <div class="time" id="time">0:00 / 0:00</div>
 
-  <iframe width="100%" height="152"
-    src="https://www.youtube.com/embed/TvnYmWpD_T8"
-    title="Prince - Purple Rain"
-    frameborder="0"
-    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-    allowfullscreen>
-  </iframe>
+      <button id="fullscreen">⛶</button>
+    </div>
+  </div>
 
-  <p class="legal">
-    Audio is streamed legally via YouTube. No copyrighted files are stored in this repository.
-  </p>
+  <footer>
+    A tribute experience • Best enjoyed with headphones
+  </footer>
 </div>
 
+<!-- YouTube API -->
+<script src="https://www.youtube.com/iframe_api"></script>
 
-        <p class="legal">
-          Note: Don’t upload copyrighted tracks you don’t have rights to.
-          For Prince’s “Purple Rain,” use a legal streaming embed/link instead.
-        </p>
-      </div>
-    </section>
-  </main>
+<script>
+  /* ========= YOUTUBE PLAYER ========= */
 
-  <canvas id="rain"></canvas>
-  <script src="script.js"></script>
+  // Replace VIDEO_ID if desired (official Purple Rain upload)
+  const VIDEO_ID = "TvnYmWpD_T8";
+
+  let player;
+  let isPlaying = false;
+
+  function onYouTubeIframeAPIReady() {
+    player = new YT.Player("player", {
+      videoId: VIDEO_ID,
+      playerVars: {
+        controls: 0,
+        modestbranding: 1,
+        rel: 0,
+        showinfo: 0
+      },
+      events: {
+        onReady: initControls
+      }
+    });
+  }
+
+  function initControls() {
+    const playPause = document.getElementById("playPause");
+    const progress = document.getElementById("progress");
+    const progressFilled = document.getElementById("progressFilled");
+    const time = document.getElementById("time");
+    const fullscreen = document.getElementById("fullscreen");
+
+    playPause.onclick = () => {
+      if (isPlaying) {
+        player.pauseVideo();
+        playPause.textContent = "▶";
+      } else {
+        player.playVideo();
+        playPause.textContent = "❚❚";
+      }
+      isPlaying = !isPlaying;
+    };
+
+    progress.onclick = e => {
+      const rect = progress.getBoundingClientRect();
+      const percent = (e.clientX - rect.left) / rect.width;
+      player.seekTo(player.getDuration() * percent, true);
+    };
+
+    fullscreen.onclick = () => {
+      const iframe = player.getIframe();
+      if (iframe.requestFullscreen) iframe.requestFullscreen();
+    };
+
+    setInterval(() => {
+      if (!player || !player.getDuration) return;
+
+      const current = player.getCurrentTime();
+      const duration = player.getDuration();
+      const percent = (current / duration) * 100;
+
+      progressFilled.style.width = percent + "%";
+      time.textContent = formatTime(current) + " / " + formatTime(duration);
+    }, 500);
+  }
+
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  }
+
+  /* ========= RAIN EFFECT ========= */
+
+  const canvas = document.getElementById("rain");
+  const ctx = canvas.getContext("2d");
+  let drops = [];
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    drops = Array.from({ length: canvas.width / 15 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      l: Math.random() * 20 + 10,
+      s: Math.random() * 4 + 2
+    }));
+  }
+
+  window.addEventListener("resize", resize);
+  resize();
+
+  function drawRain() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "rgba(178,102,255,0.35)";
+    ctx.lineWidth = 1;
+
+    drops.forEach(d => {
+      ctx.beginPath();
+      ctx.moveTo(d.x, d.y);
+      ctx.lineTo(d.x, d.y + d.l);
+      ctx.stroke();
+
+      d.y += d.s;
+      if (d.y > canvas.height) d.y = -20;
+    });
+
+    requestAnimationFrame(drawRain);
+  }
+
+  drawRain();
+</script>
+
 </body>
 </html>
-
-
-
-
