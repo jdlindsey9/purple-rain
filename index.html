@@ -1,283 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Purple Rain</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8" />
+<title>Purple Rain</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Montserrat:wght@300;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Montserrat:wght@300;500&display=swap" rel="stylesheet">
 
-  <style>
-    :root {
-      --purple-dark: #2a003d;
-      --purple-main: #6a0dad;
-      --purple-glow: #b266ff;
-      --purple-soft: rgba(178,102,255,0.15);
-      --text-main: #f5e9ff;
-    }
+<style>
+:root {
+  --bg1:#2a003d;
+  --bg2:#120018;
+  --glow:#b266ff;
+  --text:#f6ebff;
+}
 
-    * {
-      box-sizing: border-box;
-    }
+* { box-sizing: border-box; }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: 'Montserrat', sans-serif;
-      background: radial-gradient(circle at top, #3b005f, var(--purple-dark));
-      color: var(--text-main);
-      overflow-x: hidden;
-    }
+body {
+  margin:0;
+  min-height:100vh;
+  background: radial-gradient(circle at top, #3d0066, var(--bg2));
+  color:var(--text);
+  font-family:Montserrat, sans-serif;
+  overflow:hidden;
+}
 
-    /* Rain canvas */
-    canvas {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-    }
+canvas {
+  position:fixed;
+  inset:0;
+  z-index:0;
+}
 
-    .container {
-      position: relative;
-      z-index: 1;
-      max-width: 900px;
-      margin: auto;
-      padding: 4rem 1.5rem 3rem;
-      text-align: center;
-    }
+main {
+  position:relative;
+  z-index:1;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:2rem;
+  text-align:center;
+}
 
-    h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(2.5rem, 6vw, 4rem);
-      letter-spacing: 0.1em;
-      margin-bottom: 0.5rem;
-      text-shadow: 0 0 20px var(--purple-glow);
-    }
+h1 {
+  font-family:"Playfair Display", serif;
+  letter-spacing:0.15em;
+  margin-bottom:2rem;
+  text-shadow:0 0 25px var(--glow);
+}
 
-    .subtitle {
-      opacity: 0.8;
-      margin-bottom: 3rem;
-      font-size: 1rem;
-      letter-spacing: 0.15em;
-    }
+#lyrics {
+  font-size:1.4rem;
+  max-width:700px;
+  min-height:4em;
+  line-height:1.6;
+  opacity:0;
+  transition:opacity 0.6s ease;
+}
 
-    /* Player frame */
-    .player-shell {
-      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.4));
-      border-radius: 20px;
-      box-shadow:
-        0 0 40px rgba(178,102,255,0.25),
-        inset 0 0 30px rgba(255,255,255,0.05);
-      padding: 1.2rem;
-      backdrop-filter: blur(10px);
-    }
+#lyrics.active {
+  opacity:1;
+}
 
-    #player {
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      border-radius: 14px;
-      overflow: hidden;
-    }
+#overlay {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.75);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:5;
+}
 
-    /* Controls */
-    .controls {
-      margin-top: 1.2rem;
-      display: grid;
-      grid-template-columns: auto 1fr auto auto;
-      gap: 1rem;
-      align-items: center;
-    }
+#overlay button {
+  background:none;
+  border:2px solid var(--glow);
+  color:var(--text);
+  padding:1rem 2rem;
+  font-size:1.1rem;
+  cursor:pointer;
+  letter-spacing:0.15em;
+  box-shadow:0 0 25px rgba(178,102,255,0.6);
+}
 
-    button {
-      background: none;
-      border: none;
-      color: var(--text-main);
-      font-size: 1.2rem;
-      cursor: pointer;
-      transition: transform 0.2s, color 0.2s;
-    }
-
-    button:hover {
-      color: var(--purple-glow);
-      transform: scale(1.1);
-    }
-
-    .progress {
-      position: relative;
-      height: 6px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .progress-filled {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--purple-main), var(--purple-glow));
-      border-radius: 4px;
-      box-shadow: 0 0 10px var(--purple-glow);
-    }
-
-    .time {
-      font-size: 0.85rem;
-      opacity: 0.8;
-      white-space: nowrap;
-    }
-
-    footer {
-      margin-top: 3rem;
-      font-size: 0.75rem;
-      opacity: 0.6;
-      letter-spacing: 0.1em;
-    }
-  </style>
+iframe {
+  display:none; /* audio only */
+}
+</style>
 </head>
 <body>
 
 <canvas id="rain"></canvas>
 
-<div class="container">
-  <h1>PURPLE RAIN</h1>
-  <div class="subtitle">Only want to see you laughing in the purple rain</div>
-
-  <div class="player-shell">
-    <div id="player"></div>
-
-    <div class="controls">
-      <button id="playPause">▶</button>
-
-      <div class="progress" id="progress">
-        <div class="progress-filled" id="progressFilled"></div>
-      </div>
-
-      <div class="time" id="time">0:00 / 0:00</div>
-
-      <button id="fullscreen">⛶</button>
-    </div>
-  </div>
-
-  <footer>
-    A tribute experience • Best enjoyed with headphones
-  </footer>
+<div id="overlay">
+  <button id="unmute">ENTER THE PURPLE RAIN</button>
 </div>
 
-<!-- YouTube API -->
+<main>
+  <h1>PURPLE RAIN</h1>
+  <div id="lyrics"></div>
+</main>
+
+<div id="player"></div>
+
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-  /* ========= YOUTUBE PLAYER ========= */
+/* ================= YOUTUBE AUDIO ================= */
 
-  // Replace VIDEO_ID if desired (official Purple Rain upload)
-  const VIDEO_ID = "TvnYmWpD_T8";
+const VIDEO_ID = "TvnYmWpD_T8";
+let player;
 
-  let player;
-  let isPlaying = false;
-
-  function onYouTubeIframeAPIReady() {
-    player = new YT.Player("player", {
-      videoId: VIDEO_ID,
-      playerVars: {
-        controls: 0,
-        modestbranding: 1,
-        rel: 0,
-        showinfo: 0
-      },
-      events: {
-        onReady: initControls
-      }
-    });
-  }
-
-  function initControls() {
-    const playPause = document.getElementById("playPause");
-    const progress = document.getElementById("progress");
-    const progressFilled = document.getElementById("progressFilled");
-    const time = document.getElementById("time");
-    const fullscreen = document.getElementById("fullscreen");
-
-    playPause.onclick = () => {
-      if (isPlaying) {
-        player.pauseVideo();
-        playPause.textContent = "▶";
-      } else {
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player("player", {
+    videoId: VIDEO_ID,
+    playerVars: {
+      autoplay: 1,
+      controls: 0,
+      modestbranding: 1,
+      rel: 0,
+      playsinline: 1,
+      mute: 1
+    },
+    events: {
+      onReady: () => {
         player.playVideo();
-        playPause.textContent = "❚❚";
+        startLyricSync();
       }
-      isPlaying = !isPlaying;
-    };
+    }
+  });
+}
 
-    progress.onclick = e => {
-      const rect = progress.getBoundingClientRect();
-      const percent = (e.clientX - rect.left) / rect.width;
-      player.seekTo(player.getDuration() * percent, true);
-    };
+document.getElementById("unmute").onclick = () => {
+  player.unMute();
+  document.getElementById("overlay").style.display = "none";
+};
 
-    fullscreen.onclick = () => {
-      const iframe = player.getIframe();
-      if (iframe.requestFullscreen) iframe.requestFullscreen();
-    };
+/* ================= LYRICS SYNC ================= */
+/*
+  ⚠️ COPYRIGHT NOTICE
+  Paste the lyrics you legally own below.
+  Format:
+  { time: seconds, text: "lyric line" }
+*/
 
-    setInterval(() => {
-      if (!player || !player.getDuration) return;
+const lyrics = [
+  // EXAMPLE ONLY — REPLACE WITH REAL LYRICS
+  { time: 0, text: "…" },
+  { time: 15, text: "…" },
+  { time: 30, text: "…" }
+];
 
-      const current = player.getCurrentTime();
-      const duration = player.getDuration();
-      const percent = (current / duration) * 100;
+const lyricBox = document.getElementById("lyrics");
+let currentLine = -1;
 
-      progressFilled.style.width = percent + "%";
-      time.textContent = formatTime(current) + " / " + formatTime(duration);
-    }, 500);
-  }
+function startLyricSync() {
+  setInterval(() => {
+    if (!player || !player.getCurrentTime) return;
+    const t = player.getCurrentTime();
 
-  function formatTime(sec) {
-    const m = Math.floor(sec / 60);
-    const s = Math.floor(sec % 60).toString().padStart(2, "0");
-    return `${m}:${s}`;
-  }
+    for (let i = lyrics.length - 1; i >= 0; i--) {
+      if (t >= lyrics[i].time && currentLine !== i) {
+        currentLine = i;
+        lyricBox.classList.remove("active");
+        setTimeout(() => {
+          lyricBox.textContent = lyrics[i].text;
+          lyricBox.classList.add("active");
+        }, 300);
+        break;
+      }
+    }
+  }, 300);
+}
 
-  /* ========= RAIN EFFECT ========= */
+/* ================= PURPLE RAIN EFFECT ================= */
 
-  const canvas = document.getElementById("rain");
-  const ctx = canvas.getContext("2d");
-  let drops = [];
+const canvas = document.getElementById("rain");
+const ctx = canvas.getContext("2d");
+let drops = [];
 
-  function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    drops = Array.from({ length: canvas.width / 15 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      l: Math.random() * 20 + 10,
-      s: Math.random() * 4 + 2
-    }));
-  }
+function resize() {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+  drops = Array.from({ length: canvas.width / 18 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    l: Math.random() * 20 + 10,
+    s: Math.random() * 4 + 2
+  }));
+}
+window.addEventListener("resize", resize);
+resize();
 
-  window.addEventListener("resize", resize);
-  resize();
+function rain() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle="rgba(178,102,255,0.35)";
+  ctx.lineWidth=1;
 
-  function drawRain() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "rgba(178,102,255,0.35)";
-    ctx.lineWidth = 1;
-
-    drops.forEach(d => {
-      ctx.beginPath();
-      ctx.moveTo(d.x, d.y);
-      ctx.lineTo(d.x, d.y + d.l);
-      ctx.stroke();
-
-      d.y += d.s;
-      if (d.y > canvas.height) d.y = -20;
-    });
-
-    requestAnimationFrame(drawRain);
-  }
-
-  drawRain();
+  drops.forEach(d=>{
+    ctx.beginPath();
+    ctx.moveTo(d.x,d.y);
+    ctx.lineTo(d.x,d.y+d.l);
+    ctx.stroke();
+    d.y+=d.s;
+    if(d.y>canvas.height) d.y=-20;
+  });
+  requestAnimationFrame(rain);
+}
+rain();
 </script>
 
 </body>
